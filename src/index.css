@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import 'swiper/css';
+@import 'swiper/css/navigation';
+@import 'swiper/css/pagination';
+
+.swiper-slide-active .swiper-slide-content {
+    @apply w-[350px] h-[380px] md:w-[450px] md:h-[480px] lg:w-[650px] lg:h-[680px] z-10;
+  }
+  
+  .swiper-slide-active .mini-card {
+    display: flex !important;
+  }
+  
+
