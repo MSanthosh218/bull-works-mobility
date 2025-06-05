@@ -1,36 +1,37 @@
 import React, { useRef, useState, useEffect } from "react";
+import { Link } from "react-router-dom"; // Import Link for navigation
 
 const slides = [
   {
-    id: 1,
+    id: 8,
     image: "/assets/products/glx.png",
     title: "GLX E-LOADER",
     subtitle: "The Electric Skid-Steer Loader",
     info: ["HP 30-60", "Operating Hours 6–8 Hrs", "Trailer Capacity 5 Tonnes"],
   },
   {
-    id: 2,
+    id: 6,
     image: "/assets/products/beast.png",
     title: "BEAST",
     subtitle: "The Mighty Autonomous Electric Tractor",
     info: ["HP 30-60", "Operating Hours 6–8 Hrs", "Trailer Capacity 5 Tonnes"],
   },
   {
-    id: 3,
+    id: 7,
     image: "/assets/products/warrior.png",
     title: "WARRIOR",
     subtitle: "The Electric Self-Propelled Boom Sprayer",
     info: ["Track Width 2 m", "Boom Length 14 m", "Operating Hours 6–8 Hrs"],
   },
   {
-    id: 4,
+    id: 9,
     image: "/assets/products/vamana.png",
     title: "VAMANA",
     subtitle: "The Ultimate Unmanned Ground Vehicle",
     info: ["Payload 350 Kg", "Operational Hours 6–8 Hrs", "Charging Time 5 Hrs"],
   },
   {
-    id: 5,
+    id: 10,
     image: "/assets/products/ox1.png",
     title: "0X-1",
     subtitle: "The Omni-Directional Material Handler",
@@ -133,9 +134,12 @@ const ResponsiveSlider = () => {
                     </span>
                   ))}
                 </div>
-                <button className="mt-4 px-4 py-2 bg-yellow-400 text-sm font-bold rounded-full hover:bg-yellow-500 transition">
-                  ORDER NOW
-                </button>
+                {/* Added Link component around the button */}
+                <Link to={`/products/${slide.id}`}>
+                  <button className="mt-4 px-4 py-2 bg-yellow-400 text-sm font-bold rounded-full hover:bg-yellow-500 transition">
+                    VIEW
+                  </button>
+                </Link>
               </div>
             </div>
           );

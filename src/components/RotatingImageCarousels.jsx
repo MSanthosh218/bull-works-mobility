@@ -4,24 +4,40 @@ import { useNavigate } from 'react-router-dom';
 const RotatingImageCarousels = () => {
   const navigate = useNavigate();
 
+  // const clockwiseImages = [
+  //   { id: 1, src: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7', alt: 'Woman with laptop' },
+  //   { id: 2, src: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b', alt: 'Gray laptop computer' },
+  //   { id: 3, src: 'https://images.unsplash.com/photo-1518770660439-4636190af475', alt: 'Circuit board' },
+  //   { id: 4, src: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6', alt: 'Java programming' },
+  //   { id: 5, src: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158', alt: 'Woman coding' },
+  //   { id: 6, src: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5', alt: 'Matrix style' },
+  // ];
+
+  // const counterClockwiseImages = [
+  //   { id: 1, src: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1', alt: 'Laptop on surface' },
+  //   { id: 2, src: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81', alt: 'Video screens display' },
+  //   { id: 3, src: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b', alt: 'Blue light bulb' },
+  //   { id: 4, src: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085', alt: 'MacBook with code' },
+  //   { id: 5, src: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901', alt: 'Orange tabby cat' },
+  //   { id: 6, src: 'https://images.unsplash.com/photo-1721322800607-8c38375eef04', alt: 'Living room' },
+  // ];
   const clockwiseImages = [
-    { id: 1, src: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7', alt: 'Woman with laptop' },
-    { id: 2, src: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b', alt: 'Gray laptop computer' },
-    { id: 3, src: 'https://images.unsplash.com/photo-1518770660439-4636190af475', alt: 'Circuit board' },
-    { id: 4, src: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6', alt: 'Java programming' },
-    { id: 5, src: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158', alt: 'Woman coding' },
-    { id: 6, src: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5', alt: 'Matrix style' },
+    { id: 1, src: 'https://www.bullworkmobility.com/press/press7.webp', alt: 'Woman with laptop' },
+    { id: 2, src: 'https://www.bullworkmobility.com/press/press3.webp', alt: 'Gray laptop computer' },
+    { id: 3, src: 'https://www.bullworkmobility.com/press/press4.webp', alt: 'Circuit board' },
+    { id: 4, src: 'https://www.bullworkmobility.com/press/press5.webp', alt: 'Java programming' },
+    { id: 5, src: 'https://www.bullworkmobility.com/press/press6.webp', alt: 'Woman coding' },
+    { id: 6, src: 'https://www.bullworkmobility.com/press/press4.webp', alt: 'Matrix style' },
   ];
 
   const counterClockwiseImages = [
-    { id: 1, src: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1', alt: 'Laptop on surface' },
-    { id: 2, src: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81', alt: 'Video screens display' },
-    { id: 3, src: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b', alt: 'Blue light bulb' },
-    { id: 4, src: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085', alt: 'MacBook with code' },
-    { id: 5, src: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901', alt: 'Orange tabby cat' },
-    { id: 6, src: 'https://images.unsplash.com/photo-1721322800607-8c38375eef04', alt: 'Living room' },
+    { id: 1, src: 'https://www.bullworkmobility.com/press/press2.webp', alt: 'Laptop on surface' },
+    { id: 2, src: 'https://www.bullworkmobility.com/press/press8.webp', alt: 'Video screens display' },
+    { id: 3, src: 'https://www.bullworkmobility.com/press/press9.webp', alt: 'Blue light bulb' },
+    { id: 4, src: 'https://www.bullworkmobility.com/press/press2.webp', alt: 'MacBook with code' },
+    { id: 5, src: 'https://www.bullworkmobility.com/awards/award7.webp', alt: 'Orange tabby cat' },
+    { id: 6, src: 'https://www.bullworkmobility.com/awards/award1.webp', alt: 'Living room' },
   ];
-
   const renderRotatingCarousel = (images, reverse = false) => {
     const animationStyle = {
       animation: `spin 20s linear infinite ${reverse ? 'reverse' : ''}`,

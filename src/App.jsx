@@ -4,13 +4,20 @@ import Header from './components/Header';
 import Home from './pages/Home';
 import './App.css'
 import ContactWidget from './components/ContactWidget';
-import FrontPhoto from './Tech-Componets/FrontPhoto';
+import Technology from './pages/Technology';
+import AboutUs from './pages/AboutUs';
 
-// const Home = () => <div className="pt-20 text-center">Home Page</div>;
-// const About = () => <div className="pt-20 text-center">About Page</div>;
-// const Contact = () => <div className="pt-20 text-center">Contact Page</div>;
-// const Category1 = () => <div className="pt-20 text-center">Category 1 Page</div>;
-// const Category2 = () => <div className="pt-20 text-center">Category 2 Page</div>;
+import BlogGrid from './pages/BlogGrid';
+import Awards from './pages/Awards';
+// import ProductDetails from './pages/ProductDetailPage';
+import QnaSection from './pages/QnaSection';
+import ProductDetailPage from './pages/ProductDetailPage';
+import BlogDetailPage from './pages/BlogDetailPage';
+import OrderPage from './pages/OrderPage';
+import DemoPage from './pages/DemoPage';
+import AdminPage from './pages/AdminPage';
+import Careers from './pages/Careers';
+
 
 
 const App = () => {
@@ -20,13 +27,20 @@ const App = () => {
       <ContactWidget />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/technology" element={<FrontPhoto />} />
+        <Route path="/technology" element={<Technology />} />
+        <Route path="/about-us" element={<AboutUs />} />
+        <Route path='/blogs' element={<BlogGrid />} />
+        <Route path='/awards' element={<Awards />} />
+        {/* <Route path='/product-details' element={<ProductDetailspa />} /> */}
+        <Route path="/products/:id" element={<ProductDetailPage />} />
+        <Route path="/blogs/:id" element={<BlogDetailPage />} />
 
+        <Route path='Qna' element={<QnaSection />} />
+        <Route path='order' element={<OrderPage />} />
+        <Route path='demo' element={<DemoPage />} />
+        <Route path='/9347363354' element={<AdminPage />} />
+        <Route path='careers' element={<Careers />} />
 
-        {/* <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/category1" element={<Category1 />} />
-        <Route path="/category2" element={<Category2 />} /> */}
       </Routes>
     </>
   );

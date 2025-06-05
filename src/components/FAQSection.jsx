@@ -34,8 +34,7 @@ const faqs = [
 ];
 
 const FAQSection = () => {
-  const [openIndex, setOpenIndex] = useState(0); // First question expanded by default
-
+  const [openIndex, setOpenIndex] = useState(0); 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
@@ -71,8 +70,8 @@ const FAQSection = () => {
         {/* View More Button */}
         <div className="mt-10 flex justify-center">
           <Link
-            to="/faq"
-            className="px-3 py-2 bg-gradient-to-l from-[#57115E] to-[#A100B1] hover:bg-[#7e32b2] text-white text-lg font-semibold rounded-md hover:bg-purple-800 transition"
+            to="/Qna"
+            className="px-3 py-2 bg-gradient-to-l from-[#57115E] to-[#A100B1]  text-white text-lg font-semibold rounded-md hover:bg-purple-800 transition"
           >
             View More
           </Link>

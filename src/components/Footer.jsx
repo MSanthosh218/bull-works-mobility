@@ -1,11 +1,64 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from 'react-router-dom'; // Import Link for navigation
 
 const Footer = () => {
+  const [subscribeEmail, setSubscribeEmail] = useState('');
+  const [subscribeStatus, setSubscribeStatus] = useState(null); // 'success', 'error', 'submitting'
+  const [subscribeMessage, setSubscribeMessage] = useState('');
+
+  const handleSubscribeChange = (e) => {
+    setSubscribeEmail(e.target.value);
+  };
+
+  const handleSubscribeSubmit = async (e) => {
+    e.preventDefault();
+    setSubscribeStatus('submitting');
+    setSubscribeMessage('');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: subscribeEmail }),
+      });
+
+      // Clone the response so it can be read multiple times if needed
+      const clonedResponse = response.clone();
+
+      if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          // Attempt to parse JSON error from server using the original response
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (jsonParseError) {
+          // If original response could not be parsed as JSON, read the cloned response as text for debugging
+          const rawText = await clonedResponse.text();
+          console.error("Failed to parse error response as JSON, raw text:", rawText);
+          errorMessage = `Server responded with non-JSON: ${rawText.substring(0, 100)}...`; // Truncate for message
+        }
+        throw new Error(errorMessage);
+      }
+
+      // If response was OK, parse it as JSON
+      await response.json(); // Consume the original response body as JSON (even if it's just an empty object or success message)
+
+      setSubscribeStatus('success');
+      setSubscribeMessage('Thank you for subscribing!');
+      setSubscribeEmail(''); // Reset form
+    } catch (err) {
+      setSubscribeStatus('error');
+      setSubscribeMessage(`Failed to subscribe: ${err.message}`);
+      console.error('Subscription error:', err);
+    }
+  };
+
   return (
     <footer className="bg-black text-white px-6 md:px-20 pt-10 pb-6">
       {/* Logo Row */}
       <div className="flex justify-center md:justify-start mb-10">
         <div className="flex items-center gap-3">
+          {/* Assuming these image assets are correctly located in your public/assets folder */}
           <img src="/assets/logo.png" alt="Bullwork Mobility" className="h-8" />
           <img src="/assets/brand-text.png" alt="Bullwork Mobility" className="h-4 md:h-5" />
         </div>
@@ -17,24 +70,50 @@ const Footer = () => {
         <div className="w-full md:w-1/3">
           <p className="font-semibold mb-4">Connect with us on</p>
           <div className="flex gap-3 mb-6">
-            <img src="/assets/footer/facebook.webp" alt="Facebook" className="w-8 h-8" />
-            <img src="/assets/footer/youtube.webp" alt="YouTube" className="w-8 h-8" />
-            <img src="/assets/footer/instagram.webp" alt="Instagram" className="w-8 h-8" />
-            <img src="/assets/footer/twitter.webp" alt="X" className="w-8 h-8" />
-            <img src="/assets/footer/linkedin.webp" alt="LinkedIn" className="w-8 h-8" />
+            {/* Social media icons - assuming these are static links or will be handled externally */}
+            <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer">
+              <img src="/assets/footer/facebook.webp" alt="Facebook" className="w-8 h-8" />
+            </a>
+            <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer">
+              <img src="/assets/footer/youtube.webp" alt="YouTube" className="w-8 h-8" />
+            </a>
+            <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer">
+              <img src="/assets/footer/instagram.webp" alt="Instagram" className="w-8 h-8" />
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+              <img src="/assets/footer/twitter.webp" alt="X" className="w-8 h-8" />
+            </a>
+            <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer">
+              <img src="/assets/footer/linkedin.webp" alt="LinkedIn" className="w-8 h-8" />
+            </a>
           </div>
 
           <p className="font-semibold mb-2">Subscribe to receive the latest updates!</p>
-          <div className="flex flex-col sm:flex-row items-center gap-2">
+          {/* Subscription Form */}
+          <form onSubmit={handleSubscribeSubmit} className="flex flex-col sm:flex-row items-center gap-2">
             <input
               type="email"
               placeholder="your@email.com"
               className="bg-transparent border border-white text-white px-3 py-2 rounded w-full sm:w-auto"
+              value={subscribeEmail}
+              onChange={handleSubscribeChange}
+              required
             />
-            <button className="bg-white text-purple-700 font-bold px-4 py-2 rounded">
-              SUBSCRIBE
+            <button
+              type="submit"
+              className="bg-white text-purple-700 font-bold px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={subscribeStatus === 'submitting'}
+            >
+              {subscribeStatus === 'submitting' ? 'SUBSCRIBING...' : 'SUBSCRIBE'}
             </button>
-          </div>
+          </form>
+          {subscribeStatus && (
+            <div className={`mt-2 text-sm text-center sm:text-left ${
+              subscribeStatus === 'success' ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {subscribeMessage}
+            </div>
+          )}
         </div>
 
         {/* Contact Info */}
@@ -61,27 +140,27 @@ const Footer = () => {
         <div>
           <h4 className="font-semibold mb-2">COMPANY</h4>
           <ul className="space-y-1">
-            <li><a href="#" className="hover:underline">Blogs</a></li>
-            <li><a href="#" className="hover:underline">About Us</a></li>
-            <li><a href="#" className="hover:underline">Careers</a></li>
+            <li><Link to="/blogs" className="hover:underline">Blogs</Link></li>
+            <li><Link to="/about-us" className="hover:underline">About Us</Link></li>
+            <li><Link to="/careers" className="hover:underline">Careers</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-semibold mb-2">PRODUCTS</h4>
           <ul className="space-y-1">
-            <li><a href="#" className="hover:underline">Electric Tractor</a></li>
-            <li><a href="#" className="hover:underline">GLX E-Loader</a></li>
-            <li><a href="#" className="hover:underline">Vamana</a></li>
-            <li><a href="#" className="hover:underline">Warrior</a></li>
-            <li><a href="#" className="hover:underline">0X-1</a></li>
+            <li><Link to="/products/6" className="hover:underline">Electric Tractor</Link></li>
+            <li><Link to="/products/8" className="hover:underline">GLX E-Loader</Link></li>
+            <li><Link to="/products/9" className="hover:underline">Vamana</Link></li>
+            <li><Link to="/products/7" className="hover:underline">Warrior</Link></li>
+            <li><Link to="/products/10" className="hover:underline">0X-1</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-semibold mb-2">TECHNOLOGY</h4>
           <ul className="space-y-1">
-            <li><a href="#" className="hover:underline">Autonomy</a></li>
+            <li><Link to="/technology" className="hover:underline">Autonomy</Link></li>
           </ul>
         </div>
       </div>
@@ -89,7 +168,7 @@ const Footer = () => {
       {/* Bottom line */}
       <div className="mt-6 flex flex-col sm:flex-row justify-between text-sm text-gray-400 text-center sm:text-left gap-2 sm:gap-0">
         <p>© Copyrights. All rights reserved</p>
-        <a href="#" className="hover:underline">Privacy Policy</a>
+        <Link to="/privacy-policy" className="hover:underline">Privacy Policy</Link>
       </div>
     </footer>
   );

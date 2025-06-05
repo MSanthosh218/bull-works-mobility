@@ -21,11 +21,11 @@ const Header = () => {
   }, []);
 
   const products = [
-    { name: 'BEAST', image: '/assets/products/beast.png', link: '/products/beast' },
-    { name: 'WARRIOR', image: '/assets/products/warrior.png', link: '/products/warrior' },
-    { name: 'GLX', image: '/assets/products/glx.png', link: '/products/glx' },
-    { name: 'VAMANA', image: '/assets/products/vamana.png', link: '/products/vamana' },
-    { name: 'OX-1', image: '/assets/products/ox1.png', link: '/products/ox1' },
+    { name: 'BEAST', image: '/assets/products/beast.png', link: '/products/6' },
+    { name: 'WARRIOR', image: '/assets/products/warrior.png', link: '/products/7' },
+    { name: 'GLX', image: '/assets/products/glx.png', link: '/products/8' },
+    { name: 'VAMANA', image: '/assets/products/vamana.png', link: '/products/9' },
+    { name: 'OX-1', image: '/assets/products/ox1.png', link: '/products/10' },
   ];
 
   return (
