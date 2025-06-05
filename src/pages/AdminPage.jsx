@@ -1,6 +1,15 @@
+
+
+
+
 import React, { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
 import CTASection from '../components/CTASection';
+
+// Get the backend URL from environment variables.
+// Use 'import.meta.env.VITE_BACKEND_URL' if you are using Vite.
+// Use 'process.env.REACT_APP_BACKEND_URL' if you are using Create React App.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
 const AdminPage = () => {
   // State to manage active tab: 'products', 'qna', 'awards', 'media', 'requests', 'applications'
@@ -29,12 +38,13 @@ const AdminPage = () => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [deleteEndpoint, setDeleteEndpoint] = useState('');
 
-  // Generic fetch function
+  // Generic fetch function to retrieve data from the backend
   const fetchData = async (endpoint, setter, dataKey) => {
     setLoading(prev => ({ ...prev, [dataKey]: true }));
     setError(prev => ({ ...prev, [dataKey]: null }));
     try {
-      const response = await fetch(`http://localhost:5000/api/${endpoint}`);
+      // Use the dynamic BACKEND_URL here
+      const response = await fetch(`${BACKEND_URL}/api/${endpoint}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -50,6 +60,12 @@ const AdminPage = () => {
 
   // Fetch data for the active tab when it changes
   useEffect(() => {
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      return;
+    }
+
     switch (activeTab) {
       case 'products':
         fetchData('products', setProducts, 'products');
@@ -69,6 +85,12 @@ const AdminPage = () => {
       case 'applications': // Fetch applications data
         fetchData('apply', setApplications, 'applications');
         break;
+      case 'blogs': // Assuming you'll add blogs tab later based on backend routes
+        fetchData('blogs', () => {}, 'blogs'); // Placeholder, add a setter if needed
+        break;
+      case 'subscribe': // Assuming you'll add subscribe tab later
+        fetchData('subscribe', () => {}, 'subscribe'); // Placeholder
+        break;
       default:
         break;
     }
@@ -86,24 +108,18 @@ const AdminPage = () => {
     setError(prev => ({ ...prev, [dataKey]: null }));
     try {
       const method = formData.id ? 'PUT' : 'POST';
-      const url = formData.id ? `http://localhost:5000/api/${endpoint}/${formData.id}` : `http://localhost:5000/api/${endpoint}`;
+      // Use the dynamic BACKEND_URL here
+      const url = formData.id ? `${BACKEND_URL}/api/${endpoint}/${formData.id}` : `${BACKEND_URL}/api/${endpoint}`;
 
       // Handle specific data types for productForm (e.g., arrays, objects)
       const payload = { ...formData };
       if (dataKey === 'products') {
-        // Convert arrays to JSON strings if your backend expects them as such
-        // Example: if image_urls is an array, stringify it
-        if (Array.isArray(payload.image_urls)) {
-            payload.image_urls = JSON.stringify(payload.image_urls);
-        }
-        if (Array.isArray(payload.related_products_ids)) {
-            payload.related_products_ids = JSON.stringify(payload.related_products_ids);
-        }
-        if (typeof payload.specifications === 'object' && payload.specifications !== null) {
-            payload.specifications = JSON.stringify(payload.specifications);
-        }
+        // Convert arrays/objects to JSON strings if your backend expects them as such
+        // Ensure that empty arrays are sent as empty JSON strings if the backend expects `jsonb` type
+        payload.image_urls = Array.isArray(payload.image_urls) ? JSON.stringify(payload.image_urls) : '[]';
+        payload.related_products_ids = Array.isArray(payload.related_products_ids) ? JSON.stringify(payload.related_products_ids) : '[]';
+        payload.specifications = typeof payload.specifications === 'object' && payload.specifications !== null ? JSON.stringify(payload.specifications) : '{}';
       }
-
 
       const response = await fetch(url, {
         method: method,
@@ -123,7 +139,12 @@ const AdminPage = () => {
       if (dataKey === 'products') {
         formSetter({ id: null, name: '', description: '', price: '', main_image_url: '', image_urls: [], video_url: '', category: '', features_text: '', tco_savings_text: '', tco_savings_image_url: '', specifications: {}, related_products_ids: [] });
       } else {
-        formSetter({ id: null, ...Object.fromEntries(Object.keys(formData).map(key => [key, ''])) });
+        // Generic reset for other forms, setting all properties to empty string or null
+        const initialFormState = Object.keys(formData).reduce((acc, key) => {
+            acc[key] = key === 'id' ? null : '';
+            return acc;
+        }, {});
+        formSetter(initialFormState);
       }
 
     } catch (err) {
@@ -143,7 +164,8 @@ const AdminPage = () => {
     setError(prev => ({ ...prev, [dataKey]: null }));
 
     try {
-      const response = await fetch(`http://localhost:5000/api/${deleteEndpoint}/${itemToDelete.id}`, {
+      // Use the dynamic BACKEND_URL here
+      const response = await fetch(`${BACKEND_URL}/api/${deleteEndpoint}/${itemToDelete.id}`, {
         method: 'DELETE',
       });
 
@@ -171,6 +193,12 @@ const AdminPage = () => {
           break;
         case 'apply': // Re-fetch applications after deletion
           fetchData('apply', setApplications, 'applications');
+          break;
+        case 'blogs': // Placeholder for blogs
+          fetchData('blogs', () => {}, 'blogs');
+          break;
+        case 'subscribe': // Placeholder for subscribe
+          fetchData('subscribe', () => {}, 'subscribe');
           break;
         default:
           break;
@@ -271,11 +299,12 @@ const AdminPage = () => {
             <label htmlFor="productSpecifications" className="block text-sm font-medium text-gray-700">Specifications (JSON string)</label>
             <textarea id="productSpecifications" name="specifications" value={typeof productForm.specifications === 'object' ? JSON.stringify(productForm.specifications, null, 2) : productForm.specifications} onChange={(e) => {
               try {
-                setProductForm(prev => ({ ...prev, specifications: JSON.parse(e.target.value) }));
+                // Attempt to parse JSON. If invalid, keep it as a raw string to allow fixing.
+                setProductForm(prev => ({ ...prev, specifications: e.target.value ? JSON.parse(e.target.value) : {} }));
               } catch (err) {
-                // Handle invalid JSON input gracefully
                 console.error("Invalid JSON for specifications:", err);
-                setProductForm(prev => ({ ...prev, specifications: e.target.value })); // Keep raw string if invalid
+                // Optionally, store the invalid string or provide user feedback
+                setProductForm(prev => ({ ...prev, specifications: e.target.value }));
               }
             }} rows="5" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 font-mono text-xs"></textarea>
           </div>
@@ -583,29 +612,30 @@ const AdminPage = () => {
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Full Name</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {requests.map((request) => (
-                <tr key={request.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{request.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{request.request_type}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{request.product_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{request.full_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{request.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{request.phone_number}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 max-w-xs truncate">{request.address}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{request.company_name || 'N/A'}</td>
+              {requests.map((reqItem) => (
+                <tr key={reqItem.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{reqItem.id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{reqItem.request_type}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{reqItem.product_name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{reqItem.full_name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{reqItem.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{reqItem.phone_number}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{reqItem.company_name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{reqItem.status}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    {/* Add edit functionality later if needed for requests */}
                     <button
-                      onClick={() => { setItemToDelete(request); setDeleteEndpoint('requests'); setShowConfirmModal(true); }}
+                      onClick={() => { setItemToDelete(reqItem); setDeleteEndpoint('requests'); setShowConfirmModal(true); }}
                       className="text-red-600 hover:text-red-900"
                     >
                       Delete
@@ -628,7 +658,7 @@ const AdminPage = () => {
       ) : error.applications ? (
         <p className="text-center text-red-600">Error: {error.applications}</p>
       ) : applications.length === 0 ? (
-        <p className="text-center text-gray-600">No job applications found.</p>
+        <p className="text-center text-gray-600">No applications found.</p>
       ) : (
         <div className="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -638,23 +668,20 @@ const AdminPage = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied At</th>
                 <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {applications.map((app) => (
-                <tr key={app.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{app.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{app.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{app.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{app.position || 'N/A'}</td> {/* Display position */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {new Date(app.created_at).toLocaleString()}
-                  </td>
+              {applications.map((appItem) => (
+                <tr key={appItem.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{appItem.id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{appItem.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{appItem.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{appItem.position}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    {/* Add edit functionality for applications if needed */}
                     <button
-                      onClick={() => { setItemToDelete(app); setDeleteEndpoint('apply'); setShowConfirmModal(true); }}
+                      onClick={() => { setItemToDelete(appItem); setDeleteEndpoint('apply'); setShowConfirmModal(true); }}
                       className="text-red-600 hover:text-red-900"
                     >
                       Delete
@@ -671,70 +698,94 @@ const AdminPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans antialiased">
-      <header className="bg-purple-700 text-white py-12 px-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold">ADMIN DASHBOARD</h1>
-        <p className="mt-2 text-lg">Manage your application data</p>
-      </header>
+    <>
+      <div className="min-h-screen bg-gray-100 flex flex-col">
+        {/* Admin Header */}
+        <header className="bg-purple-800 text-white p-6 shadow-md">
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            {/* Future: Add Auth/Logout button here */}
+          </div>
+        </header>
 
-      {/* Adjusted mt- values to push content down */}
-      <main className="max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-8 md:p-12 mt-8 md:mt-16 relative z-10">
-        {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200 mb-8 overflow-x-auto"> {/* Added overflow-x-auto for smaller screens */}
-          <button
-            className={`py-3 px-6 text-lg font-medium whitespace-nowrap ${activeTab === 'products' ? 'border-b-2 border-purple-600 text-purple-700' : 'text-gray-600 hover:text-gray-800'}`}
-            onClick={() => setActiveTab('products')}
-          >
-            Products
-          </button>
-          <button
-            className={`py-3 px-6 text-lg font-medium whitespace-nowrap ${activeTab === 'qna' ? 'border-b-2 border-purple-600 text-purple-700' : 'text-gray-600 hover:text-gray-800'}`}
-            onClick={() => setActiveTab('qna')}
-          >
-            Q&A
-          </button>
-          <button
-            className={`py-3 px-6 text-lg font-medium whitespace-nowrap ${activeTab === 'awards' ? 'border-b-2 border-purple-600 text-purple-700' : 'text-gray-600 hover:text-gray-800'}`}
-            onClick={() => setActiveTab('awards')}
-          >
-            Awards
-          </button>
-          <button
-            className={`py-3 px-6 text-lg font-medium whitespace-nowrap ${activeTab === 'media' ? 'border-b-2 border-purple-600 text-purple-700' : 'text-gray-600 hover:text-gray-800'}`}
-            onClick={() => setActiveTab('media')}
-          >
-            Media
-          </button>
-          <button
-            className={`py-3 px-6 text-lg font-medium whitespace-nowrap ${activeTab === 'requests' ? 'border-b-2 border-purple-600 text-purple-700' : 'text-gray-600 hover:text-gray-800'}`}
-            onClick={() => setActiveTab('requests')}
-          >
-            Requests
-          </button>
-          <button
-            className={`py-3 px-6 text-lg font-medium whitespace-nowrap ${activeTab === 'applications' ? 'border-b-2 border-purple-600 text-purple-700' : 'text-gray-600 hover:text-gray-800'}`}
-            onClick={() => setActiveTab('applications')}
-          >
-            Applications
-          </button>
-        </div>
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full">
+          {/* Tab Navigation */}
+          <nav className="mb-8 border-b border-gray-200">
+            <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+              <li className="mr-2" role="presentation">
+                <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg ${activeTab === 'products' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                  onClick={() => setActiveTab('products')}
+                  role="tab" aria-controls="products-tab-panel" aria-selected={activeTab === 'products'}
+                >
+                  Products
+                </button>
+              </li>
+              <li className="mr-2" role="presentation">
+                <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg ${activeTab === 'qna' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                  onClick={() => setActiveTab('qna')}
+                  role="tab" aria-controls="qna-tab-panel" aria-selected={activeTab === 'qna'}
+                >
+                  Q&A
+                </button>
+              </li>
+              <li className="mr-2" role="presentation">
+                <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg ${activeTab === 'awards' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                  onClick={() => setActiveTab('awards')}
+                  role="tab" aria-controls="awards-tab-panel" aria-selected={activeTab === 'awards'}
+                >
+                  Awards
+                </button>
+              </li>
+              <li className="mr-2" role="presentation">
+                <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg ${activeTab === 'media' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                  onClick={() => setActiveTab('media')}
+                  role="tab" aria-controls="media-tab-panel" aria-selected={activeTab === 'media'}
+                >
+                  Media
+                </button>
+              </li>
+              <li className="mr-2" role="presentation">
+                <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg ${activeTab === 'requests' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                  onClick={() => setActiveTab('requests')}
+                  role="tab" aria-controls="requests-tab-panel" aria-selected={activeTab === 'requests'}
+                >
+                  Requests
+                </button>
+              </li>
+              <li className="mr-2" role="presentation">
+                <button
+                  className={`inline-block p-4 border-b-2 rounded-t-lg ${activeTab === 'applications' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                  onClick={() => setActiveTab('applications')}
+                  role="tab" aria-controls="applications-tab-panel" aria-selected={activeTab === 'applications'}
+                >
+                  Applications
+                </button>
+              </li>
+            </ul>
+          </nav>
 
-        {/* Tab Content */}
-        <div>
-          {activeTab === 'products' && renderProductsTab()}
-          {activeTab === 'qna' && renderQnaTab()}
-          {activeTab === 'awards' && renderAwardsTab()}
-          {activeTab === 'media' && renderMediaTab()}
-          {activeTab === 'requests' && renderRequestsTab()}
-          {activeTab === 'applications' && renderApplicationsTab()} {/* New tab content */}
-        </div>
-      </main>
+          {/* Tab Content */}
+          <div className="tab-content">
+            {activeTab === 'products' && renderProductsTab()}
+            {activeTab === 'qna' && renderQnaTab()}
+            {activeTab === 'awards' && renderAwardsTab()}
+            {activeTab === 'media' && renderMediaTab()}
+            {activeTab === 'requests' && renderRequestsTab()}
+            {activeTab === 'applications' && renderApplicationsTab()}
+          </div>
+        </main>
 
-      {showConfirmModal && <ConfirmationModal />}
-
+        {showConfirmModal && <ConfirmationModal />}
+      </div>
       <CTASection />
       <Footer />
-    </div>
+    </>
   );
 };
 

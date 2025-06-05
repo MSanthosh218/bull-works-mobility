@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 
-// Removed: interface QnaItem { ... }
-// Type definitions are removed for plain JavaScript compatibility.
+// Get the backend URL from environment variables.
+// Use 'import.meta.env.VITE_BACKEND_URL' if you are using Vite.
+// Use 'process.env.REACT_APP_BACKEND_URL' if you are using Create React App.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
-const QnaSection = () => { // Changed from React.FC to plain functional component
-  const [qnaList, setQnaList] = useState([]); // Removed <QnaItem[]>
-  const [loading, setLoading] = useState(true); // Removed <boolean>
-  const [error, setError] = useState(null); // Removed <string | null>
+const QnaSection = () => {
+  const [qnaList, setQnaList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   // State to manage which Q&A items are expanded in the accordion
-  const [expandedItems, setExpandedItems] = useState({}); // Removed <{ [key: number]: boolean }>
+  const [expandedItems, setExpandedItems] = useState({});
 
   // Function to toggle the expanded state of an individual Q&A item
-  const toggleExpand = (id) => { // Removed type for id
+  const toggleExpand = (id) => {
     setExpandedItems(prev => ({
       ...prev,
       [id]: !prev[id] // Toggle the boolean value for the given ID
@@ -20,22 +22,30 @@ const QnaSection = () => { // Changed from React.FC to plain functional componen
 
   // useEffect hook to fetch Q&A data from the backend when the component mounts
   useEffect(() => {
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      setError("Backend URL not configured. Cannot load Q&A.");
+      setLoading(false);
+      return;
+    }
+
     const fetchQna = async () => {
       try {
-        // Fetch data from your local backend API
-        const response = await fetch('http://localhost:5000/api/qna');
-        
+        // Fetch data from your backend API, using the dynamic BACKEND_URL
+        const response = await fetch(`${BACKEND_URL}/api/qna`); // Replaced localhost
+
         // Check if the network request was successful
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         // Parse the JSON response
-        const data = await response.json(); // Removed <QnaItem[]>
-        
+        const data = await response.json();
+
         // Update the state with the fetched Q&A list
         setQnaList(data);
-      } catch (err) { // Removed : any
+      } catch (err) {
         // Catch and set any errors that occur during the fetch operation
         setError(err.message);
       } finally {

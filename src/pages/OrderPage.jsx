@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import Footer from '../components/Footer'; // Please ensure this file exists at src/components/Footer.jsx
 import CTASection from '../components/CTASection'; // Please ensure this file exists at src/components/CTASection.jsx
 
+// Get the backend URL from environment variables.
+// Use 'import.meta.env.VITE_BACKEND_URL' if you are using Vite.
+// Use 'process.env.REACT_APP_BACKEND_URL' if you are using Create React App.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+
 const OrderPage = () => {
   const [formType, setFormType] = useState('individual'); // 'individual' or 'company'
   const [products, setProducts] = useState([]); // To store product names for the dropdown
@@ -31,10 +36,18 @@ const OrderPage = () => {
   const [submitMessage, setSubmitMessage] = useState('');
 
   useEffect(() => {
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      setProductError("Backend URL not configured. Cannot load products.");
+      setLoadingProducts(false);
+      return;
+    }
+
     // Fetch products to populate the dropdown
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/products');
+        const response = await fetch(`${BACKEND_URL}/api/products`); // Replaced localhost
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -62,6 +75,14 @@ const OrderPage = () => {
     setSubmitStatus('submitting');
     setSubmitMessage('');
 
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      setSubmitStatus('error');
+      setSubmitMessage('Failed to submit order: Backend URL not configured.');
+      return;
+    }
+
     // Construct payload based on form type
     const payload = {
       request_type: 'order', // This form is specifically for orders
@@ -83,7 +104,7 @@ const OrderPage = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/requests', {
+      const response = await fetch(`${BACKEND_URL}/api/requests`, { // Replaced localhost
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

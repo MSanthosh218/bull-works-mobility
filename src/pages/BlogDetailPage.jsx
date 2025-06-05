@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from 'react-router-dom';
-import Footer from '../components/Footer'; // Assuming you have this component
-import CTASection from '../components/CTASection'; // Import CTASection
+import Footer from '../components/Footer';
+import CTASection from '../components/CTASection';
+
+// Get the backend URL from environment variables.
+// Use 'import.meta.env.VITE_BACKEND_URL' if you are using Vite.
+// Use 'process.env.REACT_APP_BACKEND_URL' if you are using Create React App.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
 const BlogDetailPage = () => {
   const { id } = useParams(); // Get the blog ID from the URL
@@ -11,13 +16,21 @@ const BlogDetailPage = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      setError("Backend URL not configured. Cannot load blog posts.");
+      setLoading(false);
+      return;
+    }
+
     const fetchBlogAndRelated = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch the current blog post
-        const blogResponse = await fetch(`http://localhost:5000/api/blogs/${id}`);
+        // Fetch the current blog post using the dynamic BACKEND_URL
+        const blogResponse = await fetch(`${BACKEND_URL}/api/blogs/${id}`);
         if (!blogResponse.ok) {
           throw new Error(`HTTP error! status: ${blogResponse.status}`);
         }
@@ -25,7 +38,7 @@ const BlogDetailPage = () => {
         setBlog(blogData);
 
         // Fetch all blogs to find related ones (excluding the current one)
-        const allBlogsResponse = await fetch('http://localhost:5000/api/blogs');
+        const allBlogsResponse = await fetch(`${BACKEND_URL}/api/blogs`); // Replaced localhost
         if (!allBlogsResponse.ok) {
           throw new Error(`HTTP error! status: ${allBlogsResponse.status}`);
         }

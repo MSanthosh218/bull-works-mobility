@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { Link } from 'react-router-dom'; // Import Link for navigation
 
+// Get the backend URL from environment variables.
+// Use 'import.meta.env.VITE_BACKEND_URL' if you are using Vite.
+// Use 'process.env.REACT_APP_BACKEND_URL' if you are using Create React App.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+
 const Footer = () => {
   const [subscribeEmail, setSubscribeEmail] = useState('');
   const [subscribeStatus, setSubscribeStatus] = useState(null); // 'success', 'error', 'submitting'
@@ -15,8 +20,16 @@ const Footer = () => {
     setSubscribeStatus('submitting');
     setSubscribeMessage('');
 
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      setSubscribeStatus('error');
+      setSubscribeMessage('Failed to subscribe: Backend URL not configured.');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:5000/api/subscribe', {
+      const response = await fetch(`${BACKEND_URL}/api/subscribe`, { // Replaced localhost
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: subscribeEmail }),

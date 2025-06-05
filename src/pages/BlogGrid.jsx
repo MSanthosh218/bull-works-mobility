@@ -3,16 +3,29 @@ import { Link } from 'react-router-dom';
 import Footer from '../components/Footer'; // Assuming you have this component
 import CTASection from '../components/CTASection';
 
+// Get the backend URL from environment variables.
+// Use 'import.meta.env.VITE_BACKEND_URL' if you are using Vite.
+// Use 'process.env.REACT_APP_BACKEND_URL' if you are using Create React App.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+
 const BlogGrid = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      setError("Backend URL not configured. Cannot load blog posts.");
+      setLoading(false);
+      return;
+    }
+
     const fetchBlogs = async () => {
       try {
-        // Fetch blog data from your backend API
-        const response = await fetch('http://localhost:5000/api/blogs');
+        // Fetch blog data from your backend API, using the dynamic BACKEND_URL
+        const response = await fetch(`${BACKEND_URL}/api/blogs`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

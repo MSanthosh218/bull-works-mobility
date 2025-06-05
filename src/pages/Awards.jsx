@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from "react";
-import CTASection from "../components/CTASection";
-import Footer from "../components/Footer";
+import React, { useState, useEffect } from 'react';
+import CTASection from '../components/CTASection';
+import Footer from '../components/Footer';
 
-// Assuming these are the types for the fetched data
-// You might want to define these in a separate types file if your project uses TypeScript
-// interface AwardItem {
-//   id: number;
-//   image_url: string;
-// }
-
-// interface MediaItem {
-//   id: number;
-//   url: string;
-// }
+// Get the backend URL from environment variables.
+// Use 'import.meta.env.VITE_BACKEND_URL' if you are using Vite.
+// Use 'process.env.REACT_APP_BACKEND_URL' if you are using Create React App.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
 const Awards = () => {
   // State for Awards data
@@ -27,9 +20,17 @@ const Awards = () => {
 
   // Fetch Awards data
   useEffect(() => {
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      setAwardsError("Backend URL not configured.");
+      setAwardsLoading(false);
+      return;
+    }
+
     const fetchAwards = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/awards');
+        const response = await fetch(`${BACKEND_URL}/api/awards`); // Replaced localhost
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -47,9 +48,17 @@ const Awards = () => {
 
   // Fetch Media data
   useEffect(() => {
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      setMediaError("Backend URL not configured.");
+      setMediaLoading(false);
+      return;
+    }
+
     const fetchMedia = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/media');
+        const response = await fetch(`${BACKEND_URL}/api/media`); // Replaced localhost
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

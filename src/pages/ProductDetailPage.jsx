@@ -3,6 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import CTASection from '../components/CTASection';
 import Footer from '../components/Footer';
 
+// Get the backend URL from environment variables.
+// Use 'import.meta.env.VITE_BACKEND_URL' if you are using Vite.
+// Use 'process.env.REACT_APP_BACKEND_URL' if you are using Create React App.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+
 const ProductDetailPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -30,18 +35,28 @@ const ProductDetailPage = () => {
   const [electricityCostPerHour, setElectricityCostPerHour] = useState(100);
 
   useEffect(() => {
+    // Ensure BACKEND_URL is defined before attempting to fetch
+    if (!BACKEND_URL) {
+      console.error("BACKEND_URL is not defined. Check your .env file and environment variables.");
+      setError("Backend URL not configured. Cannot load product details.");
+      setLoading(false);
+      return;
+    }
+
     const fetchProduct = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`http://localhost:5000/api/products/${id}`);
+        // Fetch the current product using the dynamic BACKEND_URL
+        const response = await fetch(`${BACKEND_URL}/api/products/${id}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         setProduct(data);
 
-        const allProductsResponse = await fetch('http://localhost:5000/api/products');
+        // Fetch all products to find related ones, using the dynamic BACKEND_URL
+        const allProductsResponse = await fetch(`${BACKEND_URL}/api/products`);
         if (!allProductsResponse.ok) {
           throw new Error(`HTTP error! status: ${allProductsResponse.status}`);
         }
